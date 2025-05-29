@@ -4,17 +4,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func init() {
-	rootCmd.AddCommand(versionCmd)
-}
-
+//nolint:gochecknoglobals
 var Version = "0.0.1"
 
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the version number of boilerplate",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		cmd.Printf("boilerplate version %s\n", Version)
-		return nil
-	},
+func RegisterVersionCommand(root *cobra.Command) {
+	root.AddCommand(&cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of boilerplate",
+		Long:  "Display the current version of the boilerplate application.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			cmd.Printf("boilerplate version %s\n", Version)
+
+			return nil
+		},
+	})
 }

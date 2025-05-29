@@ -2,12 +2,8 @@ package cmd
 
 import (
 	"context"
-
-	"github.com/spf13/cobra"
-
 	"errors"
-	"github.com/ehsundar/go-boilerplate/internal/items"
-	"github.com/ehsundar/go-boilerplate/internal/storage"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -15,57 +11,66 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/spf13/cobra"
+
+	"github.com/ehsundar/go-boilerplate/internal/items"
+	"github.com/ehsundar/go-boilerplate/internal/storage"
 )
 
-func init() {
-	rootCmd.AddCommand(serveCmd)
+const (
+	shutdownTimeout   = 10 * time.Second
+	readHeaderTimeout = 5 * time.Second
+)
+
+func RegisterServeCommand(root *cobra.Command) {
+	root.AddCommand(&cobra.Command{
+		Use:   "serve",
+		Short: "Start the HTTP server",
+		Long:  "Start the HTTP server and serve the REST API endpoints.",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return serve(cmd.Context())
+		},
+	})
 }
 
-var serveCmd = &cobra.Command{
-	Use: "serve",
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return serve()
-	},
-}
-
-func serve() error {
-	ctx := context.Background()
-
+func serve(ctx context.Context) error {
 	config, err := LoadConfig()
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to load config: %w", err)
 	}
 
 	pool, err := storage.NewConnectionPool(ctx, config.PostgresConn)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to postgres: %w", err)
 	}
 	defer pool.Close()
 
 	_, err = storage.NewRedisClient(ctx, config.RedisConn)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to connect to redis: %w", err)
 	}
 
 	querier := storage.New()
-
-	itemsServer := items.NewItemsServer(pool, querier)
-
+	itemsServer := items.NewServer(pool, querier)
 	mux := http.NewServeMux()
 
 	server := &http.Server{
-		Addr:        config.ServerAddr,
-		Handler:     mux,
-		BaseContext: func(listener net.Listener) context.Context { return ctx },
+		Addr:              config.ServerAddr,
+		Handler:           mux,
+		BaseContext:       func(_ net.Listener) context.Context { return ctx },
+		ReadHeaderTimeout: readHeaderTimeout,
 	}
 
 	registerRoutes(mux, itemsServer)
 
 	go func() {
 		slog.Info("Starting server", "address", config.ServerAddr)
+
 		if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 			slog.Error("HTTP server error", "error", err)
 		}
+
 		slog.Info("Stopped serving new connections")
 	}()
 
@@ -73,13 +78,18 @@ func serve() error {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 
-	shutdownCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(ctx, shutdownTimeout)
 	defer cancel()
 
 	slog.Info("Shutting down server")
-	return server.Shutdown(shutdownCtx)
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		return fmt.Errorf("failed to shutdown server: %w", err)
+	}
+
+	return nil
 }
 
-func registerRoutes(mux *http.ServeMux, itemsServer items.ItemsServer) {
+func registerRoutes(mux *http.ServeMux, itemsServer *items.Server) {
 	mux.HandleFunc("/items", itemsServer.GetItems)
 }

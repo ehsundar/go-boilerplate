@@ -1,13 +1,83 @@
+version: "2"
+
 linters:
-  fast: true
+  default: all
+  disable:
+    - depguard
+  settings:
+    lll:
+      line-length: 120
+    varnamelen:
+      ignore-decls:
+        - t testing.T
+        - e error
+        - i int
+        - T any
+        - m map[string]int
+        - w http.ResponseWriter
+        - r *http.Request
+    exhaustruct:
+      exclude:
+        - 'net/http.Server'
+        - '.+/cobra\.Command$'
+        - '.+cmd\.Config$'
+    revive:
+      enable-all-rules: true
+      rules:
+        - name: exported
+          disabled: true
+        - name: package-comments
+          disabled: true
+        - name: line-length-limit
+          disabled: true
+        - name: get-return
+          disabled: true
+        - name: add-constant
+          disabled: true
+    importas:
+      no-extra-aliases: true
+    loggercheck:
+      slog: true
+      require-string-key: true
+      no-printf-like: true
+    makezero:
+      always: true
 
 output:
   formats:
-    - format: colored-line-number
+    text:
+      path: stdout
+      print-linter-name: true
+      print-issued-lines: true
+      colors: true
+  path-prefix: ""
+  path-mode: "abs"
+  sort-order:
+    - linter
+    - severity
+    - file
   show-stats: true
-  sort-results: true
+
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+    - golines
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/ehsundar/go-boilerplate
+    gci:
+      sections:
+        - standard
+        - default
+        - prefix(github.com/ehsundar/go-boilerplate)
+        - localmodule
 
 run:
   concurrency: 16
-  go: "1.23"
-  tests: false
+  go: "1.24.3"
+  timeout: 5m
+  modules-download-mode: readonly

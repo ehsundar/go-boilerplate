@@ -1,12 +1,13 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	ServerAddr string
-
+	ServerAddr   string
 	PostgresConn string
 	RedisConn    string
 }
@@ -17,9 +18,10 @@ func LoadConfig() (Config, error) {
 	viper.SetConfigType("yaml")
 
 	config := Config{}
+
 	err := viper.ReadInConfig()
 	if err != nil {
-		return Config{}, err
+		return config, fmt.Errorf("failed to read config: %w", err)
 	}
 
 	viper.SetEnvPrefix("BOILERPLATE")
@@ -28,7 +30,7 @@ func LoadConfig() (Config, error) {
 
 	err = viper.Unmarshal(&config)
 	if err != nil {
-		return Config{}, err
+		return Config{}, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
 	return config, nil

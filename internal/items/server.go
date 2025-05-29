@@ -1,23 +1,18 @@
 package items
 
 import (
-	"github.com/ehsundar/go-boilerplate/internal/storage"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"net/http"
+
+	"github.com/ehsundar/go-boilerplate/internal/storage"
 )
 
-type ItemsServer interface {
-	GetItems(http.ResponseWriter, *http.Request)
-}
-
-type itemsServer struct {
-	pool *pgxpool.Pool
-
+type Server struct {
+	pool    *pgxpool.Pool
 	querier storage.Querier
 }
 
-func NewItemsServer(pool *pgxpool.Pool, querier storage.Querier) ItemsServer {
-	return &itemsServer{
+func NewServer(pool *pgxpool.Pool, querier storage.Querier) *Server {
+	return &Server{
 		pool:    pool,
 		querier: querier,
 	}
