@@ -27,7 +27,6 @@ func RegisterServeCommand(root *cobra.Command) {
 	root.AddCommand(&cobra.Command{
 		Use:   "serve",
 		Short: "Start the HTTP server",
-		Long:  "Start the HTTP server and serve the REST API endpoints.",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return serve(cmd.Context())
 		},

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -24,7 +25,9 @@ func LoadConfig() (Config, error) {
 		return config, fmt.Errorf("failed to read config: %w", err)
 	}
 
-	viper.SetEnvPrefix("BOILERPLATE")
+	envPrefix := strings.ReplaceAll(strings.ToUpper(AppName), "-", "_")
+
+	viper.SetEnvPrefix(envPrefix)
 	viper.KeyDelimiter("__")
 	viper.AutomaticEnv()
 

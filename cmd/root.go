@@ -10,9 +10,8 @@ var errNoSubcommand = errors.New("please specify a subcommand")
 
 func Execute() error {
 	rootCmd := &cobra.Command{
-		Use:   "boilerplate",
-		Short: "Boilerplate is a simple REST API application",
-		Long:  "Boilerplate is a simple REST API application for demonstration and quick project bootstrapping.",
+		Use:   AppName,
+		Short: AppName + " is a REST API application",
 		RunE: func(_ *cobra.Command, _ []string) error {
 			return errNoSubcommand
 		},
