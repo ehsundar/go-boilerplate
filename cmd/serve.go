@@ -90,5 +90,13 @@ func serve(ctx context.Context) error {
 }
 
 func registerRoutes(mux *http.ServeMux, itemsServer *items.Server) {
-	mux.HandleFunc("/items", itemsServer.GetItems)
+	mux.HandleFunc("/items", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			itemsServer.CreateItem(w, r)
+
+			return
+		}
+
+		itemsServer.GetItems(w, r)
+	})
 }
