@@ -17,12 +17,6 @@ type CreateItemResponse struct {
 }
 
 func (s *Server) CreateItem(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		jsonx.WriteError(w, r, http.StatusMethodNotAllowed, "method not allowed")
-
-		return
-	}
-
 	var req CreateItemRequest
 	if !jsonx.ReadJSON(w, r, &req) {
 		return

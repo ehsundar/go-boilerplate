@@ -51,8 +51,10 @@ func serve(ctx context.Context) error {
 	}
 
 	querier := storage.New()
-	itemsServer := items.NewServer(pool, querier)
 	mux := http.NewServeMux()
+
+	itemsServer := items.NewServer(pool, querier)
+	itemsServer.RegisterRoutes(mux, "/items")
 
 	server := &http.Server{
 		Addr:              config.ServerAddr,
@@ -60,8 +62,6 @@ func serve(ctx context.Context) error {
 		BaseContext:       func(_ net.Listener) context.Context { return ctx },
 		ReadHeaderTimeout: readHeaderTimeout,
 	}
-
-	registerRoutes(mux, itemsServer)
 
 	go func() {
 		slog.Info("Starting server", "address", config.ServerAddr)
@@ -87,16 +87,4 @@ func serve(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func registerRoutes(mux *http.ServeMux, itemsServer *items.Server) {
-	mux.HandleFunc("/items", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost {
-			itemsServer.CreateItem(w, r)
-
-			return
-		}
-
-		itemsServer.GetItems(w, r)
-	})
 }
