@@ -8,6 +8,9 @@ select *
 from items
 where id = @id;
 
--- name: GetItems :many
+-- name: GetItemsPaginated :many
 select *
-from items;
+from items
+where id < @last_item_id
+order by id desc
+limit @page_size;

@@ -1,0 +1,2 @@
+GET http://localhost:8080/items?page_token=eyJsYXN0X2l0ZW1faWQiOjJ9
+Accept: application/json

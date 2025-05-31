@@ -1,2 +1,2 @@
-GET http://localhost:8080/items
+GET http://localhost:8080/items?page_size=1
 Accept: application/json
