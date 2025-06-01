@@ -1,37 +1,38 @@
-name: Go
-
+name: golangci-lint
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - main
+      - master
   pull_request:
-    branches: [ "master" ]
+
+permissions:
+  contents: read
+  # Optional: allow read access to pull requests. Use with `only-new-issues` option.
+  # pull-requests: read
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.23'
-
-    - name: Build
-      run: go build -v ./...
-
-    - name: Test
-      run: go test -v ./...
-
-    - name: Golangci-lint
-      uses: golangci/golangci-lint-action@v6.0.1
-      with:
-        version: v1.62.2
-        install-mode: goinstall
-        working-directory: .
-        github-token: ${{ github.token }}
-        only-new-issues: false
-        skip-cache: false
-        skip-save-cache: false
-        problem-matchers: false
-        cache-invalidation-interval: 7
+      - uses: actions/checkout@v4
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.24'
+      - name: Build
+        run: go build -v ./...
+      - name: Test
+        run: go test -v ./...
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.1
